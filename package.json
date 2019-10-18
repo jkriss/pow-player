@@ -1,0 +1,25 @@
+{
+  "name": "pow-player",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+   "scripts": {
+    "start": "budo index.js --dir public --serve _/bundle.js --live -- -o public/_/bundle.js",
+    "build:index": "browserify -p tinyify index.js -o dist/_/bundle.js && cp public/index.html dist",
+    "build:sw": "browserify -p tinyify sw.js -o dist/sw.js",
+    "build": "npm run build:index && npm run build:sw",
+    "sw:watch": "watchify sw.js -o public/sw.js -v"
+  },
+  "author": "Jesse Kriss <jesse@jklabs.net>",
+  "license": "ISC",
+  "dependencies": {
+    "powfile": "0.0.3",
+    "zip-server": "0.0.1"
+  },
+  "devDependencies": {
+    "browserify": "^16.5.0",
+    "budo": "^11.6.3",
+    "tinyify": "^2.5.1",
+    "watchify": "^3.11.1"
+  }
+}
