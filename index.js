@@ -9,29 +9,25 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+// TODO move this out to a default handler
 const handleFile = function(evt) {
   console.log('file chosen:', evt)
   loadFile(evt.target.files[0])
 }
 
-const loadFile = function(file) {
-  window.file = file
-  if (navigator.serviceWorker) {
-    console.log("sending zip to service worker")
-    var messageChannel = new MessageChannel();
-    messageChannel.port1.onmessage = function(event) {
-      console.log('main page got message back', event.data)
-      //if (event.data.type === 'zipLoaded') window.location.reload()
-      if (event.data.type === 'zipLoaded') {
-        document.getElementById('frame').src = '/zipindex.html'
-      }
-    }
-    navigator.serviceWorker.controller.postMessage({
-      type: 'zipFile',
-      payload: file
-    }, [messageChannel.port2])
-  }
-
+const loadFile = async function(file) {
+  fetch('/_/load', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'image/png'
+    },
+    body: file 
+  })
+  .then(res => {
+    if (res.status === 201) document.getElementById('frame').src = '/index.html'
+    else console.error(`Expected status 201, got ${res.status}`)
+  })
+  .catch(console.error)
 }
 
 document.getElementById('file').addEventListener('change', handleFile)

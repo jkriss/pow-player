@@ -3,11 +3,15 @@
   "version": "0.0.1",
   "description": "",
   "main": "index.js",
-   "scripts": {
-    "start": "budo index.js --dir public --serve _/bundle.js --live -- -o public/_/bundle.js",
+  "scripts": {
+    "start": "nf start",
+    "dev": "budo index.js -p $PORT --dir public --serve _/bundle.js -- -o public/_/bundle.js",
     "build:index": "browserify -p tinyify index.js -o dist/_/bundle.js && cp public/index.html dist",
+    "build:index:lite": "browserify index.js -o dist/_/bundle.js && cp public/index.html dist",
     "build:sw": "browserify -p tinyify sw.js -o dist/sw.js",
+    "build:sw:lite": "browserify sw.js -o dist/sw.js",
     "build": "npm run build:index && npm run build:sw",
+    "build:lite": "npm run build:index:lite && npm run build:sw:lite",
     "sw:watch": "watchify sw.js -o public/sw.js -v"
   },
   "author": "Jesse Kriss <jesse@jklabs.net>",
