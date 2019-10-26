@@ -35,4 +35,12 @@ const loadFile = function(file) {
 }
 
 document.getElementById('file').addEventListener('change', handleFile)
+document.getElementById('back').addEventListener('click', function() {
+  window.history.back()
+})
+document.getElementById('forward').addEventListener('click', function() {
+  console.log("clicked forward")
+  window.history.forward()
+})
+
 

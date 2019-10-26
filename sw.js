@@ -4,10 +4,17 @@ const mime = require('mime/lite')
 const { parse } = require('powfile')
 const { parseResponse } = require('parse-raw-http').parseResponse
 
+self.addEventListener("install", function(event) {
+  console.log("installed, skip waiting");
+  // install immediately
+  self.skipWaiting();
+});
+
 let zip
 let zipLoading = false
 
 self.addEventListener('message', async function(event){
+  zip = null
   zipLoading = true
   //console.log("SW Received Message: ", event.data);
   // read in the file
@@ -15,8 +22,12 @@ self.addEventListener('message', async function(event){
   reader.readAsArrayBuffer(event.data.payload)
   reader.onload = async () => {
     const buf = new Buffer(reader.result)
-    zip = await parse(buf, { unzip: true })
-    console.log('new powfile loaded')
+    try {
+      zip = await parse(buf, { unzip: true })
+      console.log('new powfile loaded')
+    } catch (err) {
+      console.error("Couldn't load powfile:", err)
+    }
     zipLoading = false
     event.ports[0].postMessage({ type: 'zipLoaded' })
   }
@@ -24,6 +35,7 @@ self.addEventListener('message', async function(event){
 })
 
 const getFromZip = function(url) {
+  if (!zip) return new Response("This file isn't a powfile, no data found.", { status: 404 })
   const pathname = new URL(url).pathname.slice(1)
   let actualPath = pathname === '' ? '/' : pathname
   //console.log('getting', actualPath, 'from', zip)
