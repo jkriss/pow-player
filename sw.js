@@ -1,3 +1,5 @@
+require('core-js/stable')
+require('regenerator-runtime/runtime')
 const mime = require('mime/lite')
 const { parse } = require('powfile')
 const { parseResponse } = require('parse-raw-http').parseResponse
@@ -9,7 +11,7 @@ self.addEventListener('message', async function(event){
   zipLoading = true
   //console.log("SW Received Message: ", event.data);
   // read in the file
-  reader = new FileReader()
+  const reader = new FileReader()
   reader.readAsArrayBuffer(event.data.payload)
   reader.onload = async () => {
     const buf = new Buffer(reader.result)

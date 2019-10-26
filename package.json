@@ -8,7 +8,7 @@
     "build:index": "browserify -p tinyify -t [ babelify --presets [ \"@babel/preset-env\" ] ] index.js -o dist/_/bundle.js && cp public/index.html dist",
     "build:sw": "browserify -p tinyify -t [ babelify --presets [ \"@babel/preset-env\" ] ] -o dist/sw.js sw.js",
     "build": "npm run build:index && npm run build:sw",
-    "sw:watch": "watchify sw.js -o public/sw.js -v"
+    "sw:watch": "watchify sw.js -t [ babelify --presets [ \"@babel/preset-env\" ] ] -o public/sw.js -v"
   },
   "author": "Jesse Kriss <jesse@jklabs.net>",
   "license": "ISC",
@@ -23,6 +23,8 @@
     "babelify": "^10.0.0",
     "browserify": "^16.5.0",
     "budo": "^11.6.3",
+    "core-js": "^3.3.4",
+    "regenerator-runtime": "^0.13.3",
     "tinyify": "^2.5.1",
     "watchify": "^3.11.1"
   }
