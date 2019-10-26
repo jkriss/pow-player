@@ -3,20 +3,24 @@
   "version": "0.0.1",
   "description": "",
   "main": "index.js",
-   "scripts": {
+  "scripts": {
     "start": "budo index.js --dir public --serve _/bundle.js --live -- -o public/_/bundle.js",
-    "build:index": "browserify -p tinyify index.js -o dist/_/bundle.js && cp public/index.html dist",
-    "build:sw": "browserify -p tinyify sw.js -o dist/sw.js",
+    "build:index": "browserify -p tinyify -t [ babelify --presets [ \"@babel/preset-env\" ] ] index.js -o dist/_/bundle.js && cp public/index.html dist",
+    "build:sw": "browserify -p tinyify -t [ babelify --presets [ \"@babel/preset-env\" ] ] -o dist/sw.js sw.js",
     "build": "npm run build:index && npm run build:sw",
     "sw:watch": "watchify sw.js -o public/sw.js -v"
   },
   "author": "Jesse Kriss <jesse@jklabs.net>",
   "license": "ISC",
+  "browserslist": "> 1%, not dead",
   "dependencies": {
     "powfile": "0.0.3",
     "zip-server": "0.0.1"
   },
   "devDependencies": {
+    "@babel/core": "^7.6.4",
+    "@babel/preset-env": "^7.6.3",
+    "babelify": "^10.0.0",
     "browserify": "^16.5.0",
     "budo": "^11.6.3",
     "tinyify": "^2.5.1",
