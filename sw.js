@@ -41,12 +41,21 @@ self.addEventListener('message', async function(event){
       console.error("Couldn't load powfile:", err)
     }
     zipLoading = false
+    caches.open(version).then(cache => {
+      const req = new Request(self.location.origin + '/_/powfile.png')
+      console.log("caching powfile as", req)
+      cache.put(
+        req,
+        new Response(buf, { headers: { 'Content-Type': 'image/png', 'Content-Length': buf.length } })
+      )
+    })
     event.ports[0].postMessage({ type: 'zipLoaded' })
   }
   reader.onerror = () => console.error(reader.error)
 })
 
 const getFromZip = function(url) {
+  // TODO check caches before failing
   if (!zip) return new Response("This file isn't a powfile, no data found.", { status: 404 })
   const pathname = new URL(url).pathname.slice(1)
   let actualPath = pathname === '' ? '/' : pathname
@@ -104,12 +113,15 @@ self.addEventListener('fetch', function(event) {
     event.respondWith(getFromZip(event.request.url.replace('/zipindex.html', '/index.html')))
   } else if (overrideUrl(event.request.url) && zip) {
     event.respondWith(getFromZip(event.request.url))
+  } else if (parsedUrl.pathname === '/_/powfile.png') {
+    event.respondWith(caches.match(event.request))
   } else {
     // these are regular fetches, but use the cache if we need to
     //event.respondWith(fetch(event.request))
+    console.log("handling request:", event.request)
     event.respondWith(
       caches.match(event.request).then(resp => {
-        console.log("catch match for", event.request, "?", resp)
+        console.log("cache match for", event.request, "?", resp)
         if (resp && !navigator.onLine) {
           // if we're offline, don't try to fetch
           return resp
@@ -119,7 +131,9 @@ self.addEventListener('fetch', function(event) {
             // save this to the cache so we're up to date next time we're offline
             return caches.open(version)
             .then(cache => {
-               cache.put(event.request, response.clone())
+               if (response.status === 200) {
+                 cache.put(event.request, response.clone())
+               } 
             })
             .then(() => response)
           }).catch(err => {
