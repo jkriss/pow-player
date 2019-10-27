@@ -3,9 +3,21 @@ require('regenerator-runtime/runtime')
 const mime = require('mime/lite')
 const { parse } = require('powfile')
 const { parseResponse } = require('parse-raw-http').parseResponse
+const version = 'v1'
 
 self.addEventListener("install", function(event) {
   console.log("installed, skip waiting");
+  // prime cache so it works offline next time
+  event.waitUntil(
+    caches.open(version).then(function(cache) {
+      console.log("-- initializing cache --")
+      return cache.addAll([
+        '/',
+        '/_/bundle.js'
+      ]).catch(console.error)
+      .then(() => console.log("-- cache initialized --"))
+    })
+  )
   // install immediately
   self.skipWaiting();
 });
@@ -91,9 +103,27 @@ self.addEventListener('fetch', function(event) {
     // special url for the zip index
     event.respondWith(getFromZip(event.request.url.replace('/zipindex.html', '/index.html')))
   } else if (overrideUrl(event.request.url) && zip) {
-    //event.respondWith(new Promise(resolve => resolve(new Response('hiiii '+event.request.url)))) 
     event.respondWith(getFromZip(event.request.url))
   } else {
-    event.respondWith(fetch(event.request))
+    // these are regular fetches, but use the cache if we need to
+    //event.respondWith(fetch(event.request))
+    event.respondWith(
+      caches.match(event.request).then(resp => {
+        console.log("catch match for", event.request, "?", resp)
+        if (resp && !navigator.onLine) {
+          // if we're offline, don't try to fetch
+          return resp
+        } else {
+          return fetch(event.request).then(response => {
+            // if we're online, try fetching
+            return response
+          }).catch(err => {
+            // if it fails for some reason and we have
+            // a cached response, use that
+            if (resp) return resp
+          })
+        }
+      })
+    )
   }
 })
