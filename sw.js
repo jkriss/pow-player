@@ -25,13 +25,14 @@ self.addEventListener("install", function(event) {
 let zip
 let zipLoading = false
 
-self.addEventListener('message', async function(event){
+const loadZip = function(payload, port) {
+  console.log("loading zip from", payload)
+  return new Promise((resolve, reject) => {
   zip = null
   zipLoading = true
-  //console.log("SW Received Message: ", event.data);
   // read in the file
   const reader = new FileReader()
-  reader.readAsArrayBuffer(event.data.payload)
+  reader.readAsArrayBuffer(payload)
   reader.onload = async () => {
     const buf = new Buffer(reader.result)
     try {
@@ -49,13 +50,25 @@ self.addEventListener('message', async function(event){
         new Response(buf, { headers: { 'Content-Type': 'image/png', 'Content-Length': buf.length } })
       )
     })
-    event.ports[0].postMessage({ type: 'zipLoaded' })
+    if (port) port.postMessage({ type: 'zipLoaded' })
+    resolve()
   }
-  reader.onerror = () => console.error(reader.error)
+  reader.onerror = () => reject(reader.error)
+  })
+}
+
+self.addEventListener('message', async function(event){
+  loadZip(event.data.payload, event.ports[0])
 })
 
-const getFromZip = function(url) {
-  // TODO check caches before failing
+const getFromZip = async function(url) {
+  if (!zip) {
+    // try to grab it from the cache first
+    await caches.open(version)
+    .then(cache => cache.match(new Request(self.location.origin+'/_/powfile.png')))
+    .then(res => res.blob().then(blob => loadZip(blob)))
+    .catch(err => console.error("error loading zip from cache:", err))
+  }
   if (!zip) return new Response("This file isn't a powfile, no data found.", { status: 404 })
   const pathname = new URL(url).pathname.slice(1)
   let actualPath = pathname === '' ? '/' : pathname
