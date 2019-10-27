@@ -116,8 +116,14 @@ self.addEventListener('fetch', function(event) {
         } else {
           return fetch(event.request).then(response => {
             // if we're online, try fetching
-            return response
+            // save this to the cache so we're up to date next time we're offline
+            return caches.open(version)
+            .then(cache => {
+               cache.put(event.request, response.clone())
+            })
+            .then(() => response)
           }).catch(err => {
+            console.error('error fetching', err)
             // if it fails for some reason and we have
             // a cached response, use that
             if (resp) return resp
