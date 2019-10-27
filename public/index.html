@@ -31,14 +31,29 @@
       #back {
         transform: scale(-1, 1) 
       }
+      #chrome {
+        display: flex;
+        background: #ddd;
+        align-items: center;
+        border: 1px solid #ccc;
+        border-left: none;
+        border-right: none;
+      }
+
+      #chrome input {
+        margin-left: 1rem;
+      }
+
     </style>
   </head>
   <body>
     <div id="chrome">
+      <div id="controls">
+        <button id="back" value="back">&#x2B95;</button>
+        <button id="forward" value="forward">&#x2B95;</button>
+        <!-- <a href="/_/unload">clear</a> -->
+      </div>
       <input type="file" id="file" name="file" accept="image/png"></input>
-      <button id="back" value="back">&#x2B95;</button>
-      <button id="forward" value="forward">&#x2B95;</button>
-      <!-- <a href="/_/unload">clear</a> -->
     </div>
     <iframe id="frame"></iframe>
     <script src="/_/bundle.js" charset="utf-8"></script>
