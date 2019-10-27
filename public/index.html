@@ -28,13 +28,16 @@
         border: 0;
         flex-grow: 1;
       }
+      #back {
+        transform: scale(-1, 1) 
+      }
     </style>
   </head>
   <body>
     <div id="chrome">
       <input type="file" id="file" name="file" accept="image/png"></input>
-      <button id="back">&#x25c0;</button>
-      <button id="forward">&#x25b6;</button>
+      <button id="back" value="back">&#x2B95;</button>
+      <button id="forward" value="forward">&#x2B95;</button>
       <!-- <a href="/_/unload">clear</a> -->
     </div>
     <iframe id="frame"></iframe>
