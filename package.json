@@ -6,8 +6,9 @@
   "scripts": {
     "start": "budo index.js --dir public --serve _/bundle.js --live -- -o public/_/bundle.js",
     "build:index": "browserify -p tinyify -t [ babelify --presets [ \"@babel/preset-env\" ] ] index.js -o dist/_/bundle.js && cp public/index.html dist",
+    "build:public": "cp -r public/_ dist",
     "build:sw": "browserify -p tinyify -t [ babelify --presets [ \"@babel/preset-env\" ] ] -o dist/sw.js sw.js",
-    "build": "npm run build:index && npm run build:sw",
+    "build": "npm run build:index && npm run build:sw && npm run build:public",
     "sw:watch": "watchify sw.js -t [ babelify --presets [ \"@babel/preset-env\" ] ] -o public/sw.js -v"
   },
   "author": "Jesse Kriss <jesse@jklabs.net>",
