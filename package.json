@@ -15,7 +15,11 @@
   "license": "ISC",
   "browserslist": "> 1%, not dead",
   "dependencies": {
+    "instascan": "git+https://github.com/jkriss/instascan.git",
+    "nanohtml": "^1.9.0",
     "powfile": "0.0.3",
+    "qrcode": "^1.4.2",
+    "qrloop": "^0.9.0",
     "zip-server": "0.0.1"
   },
   "devDependencies": {

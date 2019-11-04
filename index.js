@@ -1,3 +1,8 @@
+require('core-js/stable')
+require('regenerator-runtime/runtime')
+const { makeAnimatedQRCode } = require('./qr-export')
+const html = require('nanohtml')
+
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js', {scope: '/'})
   .then(function(reg) {
@@ -34,6 +39,29 @@ const loadFile = function(file) {
 
 }
 
+const showQRCode = async function() {
+  // get the cached powfile
+  const powfileBuffer = await fetch('/_/powfile.png').then(res => res.arrayBuffer())
+   .catch(err => console.error('error fetching powfile', err))
+  console.log("loaded powfile", powfileBuffer)
+  const { canvasEl, destroy } = makeAnimatedQRCode(powfileBuffer)
+  let el
+  const close = (evt) => {
+    evt.preventDefault()
+    el.parentNode.removeChild(el)
+    destroy()
+  }
+  el = html`
+  <div id="modal">
+    <a href="#" onclick=${close}>close</a>
+    <div class="content">
+      ${canvasEl}
+    </div>
+  </div>
+  `  
+  document.body.append(el)
+}
+
 document.getElementById('file').addEventListener('change', handleFile)
 document.getElementById('back').addEventListener('click', function() {
   window.history.back()
@@ -42,5 +70,8 @@ document.getElementById('forward').addEventListener('click', function() {
   console.log("clicked forward")
   window.history.forward()
 })
-
+document.getElementById('export').addEventListener('click', function() {
+  console.log("exporting file")
+  showQRCode()
+})
 

@@ -44,6 +44,16 @@
         margin-left: 1rem;
       }
 
+      #modal {
+        background: #fff;
+        position: absolute;
+        top: 0;
+        z-index: 10;
+        padding: 1rem;
+        margin: 1rem;
+        box-shadow: 0 0 2px rgba(0,0,0, 0.5)
+      }
+
     </style>
   </head>
   <body>
@@ -54,6 +64,7 @@
         <!-- <a href="/_/unload">clear</a> -->
       </div>
       <input type="file" id="file" name="file" accept="image/png"></input>
+      <button id="export">export</button>
     </div>
     <iframe id="frame" src="zipindex.html"></iframe>
     <script src="/_/bundle.js" charset="utf-8"></script>
