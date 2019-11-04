@@ -1,7 +1,7 @@
 const { dataToFrames } = require('qrloop/exporter')
 const qrcode = require('qrcode')
 const LF = '\r\n'
-const delay = 130
+const delay = 100
 
 const makeResponse = (powfileBuffer) => {
   const lines = [
@@ -28,17 +28,22 @@ const makeAnimatedQRCode = (powfileBuffer, opts={}) => {
 const makeAnimatedQRCodeFromFrames = (frames, opts={}) => {
   const canvasEl = document.createElement('canvas')
   console.log(`created ${frames.length} frames`)
+  let lastTime
   let i = 0
-  const update = () => {
+  let raf
+  const update = (t) => {
+    raf = requestAnimationFrame(update)
+    if (!lastTime) lastTime = t
+    if ((t - lastTime) < delay) return
     if (i === frames.length) i = 0
     qrcode.toCanvas(canvasEl, frames[i], { width: opts.width || 300 })
+    lastTime = t
     i++
   }
-  // TODO use requestAnimationFrame
-  const updateInterval = setInterval(update, delay)  
+  requestAnimationFrame(update)
   const destroy = () => {
     console.log("-- stopping animation --")
-    clearInterval(updateInterval)
+    cancelAnimationFrame(raf)
   }
   return { 
     canvasEl,
