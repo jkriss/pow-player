@@ -3,6 +3,7 @@ require('regenerator-runtime/runtime')
 const mime = require('mime/lite')
 const { parse } = require('powfile')
 const { parseResponse } = require('parse-raw-http').parseResponse
+const { makeFrames } = require('./qr-export')
 const version = 'v1'
 
 self.addEventListener("install", function(event) {
@@ -24,6 +25,7 @@ self.addEventListener("install", function(event) {
 
 let zip
 let zipLoading = false
+let powfileBuffer
 
 const loadZip = function(payload, port) {
   console.log("loading zip from", payload)
@@ -35,6 +37,7 @@ const loadZip = function(payload, port) {
   reader.readAsArrayBuffer(payload)
   reader.onload = async () => {
     const buf = new Buffer(reader.result)
+    powfileBuffer = buf
     try {
       zip = await parse(buf, { unzip: true })
       console.log('new powfile loaded')
@@ -111,6 +114,16 @@ const overrideUrl = function(urlString) {
   }
 }
 
+const createFountainFrames = async function() {
+  console.log("powfile buffer is", powfileBuffer.length)
+  if (powfileBuffer.length > 500000) {
+    return new Response(JSON.stringify({ error: 'Powfile has to be less than 500kB for QR export' }), { status: 413 })
+  }
+  const frames = makeFrames(powfileBuffer)
+  console.log("made", frames.length, "frames")
+  return new Response(JSON.stringify({ frames }), { headers: { 'Content-Type': 'application/json' }})
+}
+
 self.addEventListener('fetch', function(event) {
   console.log('fetch event:', event)
   console.log('url:', event.request.url)
@@ -128,6 +141,8 @@ self.addEventListener('fetch', function(event) {
     event.respondWith(getFromZip(event.request.url))
   } else if (parsedUrl.pathname === '/_/powfile.png') {
     event.respondWith(caches.match(event.request))
+  } else if (parsedUrl.pathname === '/_/powfile-fountain.json') {
+    event.respondWith(createFountainFrames())
   } else {
     // these are regular fetches, but use the cache if we need to
     //event.respondWith(fetch(event.request))

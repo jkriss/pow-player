@@ -12,18 +12,21 @@ const makeResponse = (powfileBuffer) => {
   return Buffer.concat([Buffer.from(lines.join(LF)), Buffer.from(powfileBuffer)])
 }
 
-const makeFrames = (powfileBuffer) => {
+const makeFrames = (powfileBuffer, opts={}) => {
   // always encode as an http response
   const buf = makeResponse(powfileBuffer)
-  const packetSize = 250
-  const loops = 5 
+  const packetSize = opts.packetSize || 250
+  const loops = opts.loops || 3 
   return dataToFrames(buf, packetSize, loops)
 }
 
 const makeAnimatedQRCode = (powfileBuffer, opts={}) => {
-  console.log(`making animated qr code from`, powfileBuffer)
-  const canvasEl = document.createElement('canvas')
   const frames = makeFrames(powfileBuffer)
+  return makeAnimatedQRCodeFromFrames(frames, opts)
+}
+
+const makeAnimatedQRCodeFromFrames = (frames, opts={}) => {
+  const canvasEl = document.createElement('canvas')
   console.log(`created ${frames.length} frames`)
   let i = 0
   const update = () => {
@@ -44,5 +47,7 @@ const makeAnimatedQRCode = (powfileBuffer, opts={}) => {
 }
 
 module.exports = {
-  makeAnimatedQRCode
+  makeAnimatedQRCode,
+  makeAnimatedQRCodeFromFrames,
+  makeFrames
 }

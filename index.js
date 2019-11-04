@@ -1,6 +1,6 @@
 require('core-js/stable')
 require('regenerator-runtime/runtime')
-const { makeAnimatedQRCode } = require('./qr-export')
+const { makeAnimatedQRCodeFromFrames } = require('./qr-export')
 const html = require('nanohtml')
 
 if ('serviceWorker' in navigator) {
@@ -41,25 +41,34 @@ const loadFile = function(file) {
 
 const showQRCode = async function() {
   // get the cached powfile
-  const powfileBuffer = await fetch('/_/powfile.png').then(res => res.arrayBuffer())
+  const data = await fetch('/_/powfile-fountain.json').then(res => {
+    if (res.status === 200) {
+      return res.json()
+    } else if (res.status === 413) {
+      res.json().then(({ error }) => alert(error))
+    } else {
+      console.error("Unexpected response:", res.status)
+    }
+   })
    .catch(err => console.error('error fetching powfile', err))
-  console.log("loaded powfile", powfileBuffer)
-  const { canvasEl, destroy } = makeAnimatedQRCode(powfileBuffer)
-  let el
-  const close = (evt) => {
-    evt.preventDefault()
-    el.parentNode.removeChild(el)
-    destroy()
-  }
-  el = html`
-  <div id="modal">
-    <a href="#" onclick=${close}>close</a>
-    <div class="content">
-      ${canvasEl}
+  if (data) {
+    const { canvasEl, destroy } = makeAnimatedQRCodeFromFrames(data.frames)
+    let el
+    const close = (evt) => {
+      evt.preventDefault()
+      el.parentNode.removeChild(el)
+      destroy()
+    }
+    el = html`
+    <div id="modal">
+      <a href="#" onclick=${close}>close</a>
+      <div class="content">
+        ${canvasEl}
+      </div>
     </div>
-  </div>
-  `  
-  document.body.append(el)
+    `  
+    document.body.append(el)
+  }
 }
 
 document.getElementById('file').addEventListener('change', handleFile)
