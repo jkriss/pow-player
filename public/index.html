@@ -28,9 +28,6 @@
         border: 0;
         flex-grow: 1;
       }
-      #back {
-        transform: scale(-1, 1) 
-      }
       #chrome {
         display: flex;
         background: #ddd;
@@ -39,18 +36,25 @@
         border-left: none;
         border-right: none;
       }
-
       #chrome input {
         margin-left: 1rem;
       }
-
+      #back svg, #forward svg {
+        height: 12px;
+        width: 12px;
+        padding: 4px 2px 2px 2px;
+      }
     </style>
   </head>
   <body>
     <div id="chrome">
       <div id="controls">
-        <button id="back" value="back">&#x2B95;</button>
-        <button id="forward" value="forward">&#x2B95;</button>
+        <button id="back" aria-label="back"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 8 8">
+  <path d="M0 0v6h2v-6h-2zm2 3l5 3v-6l-5 3z" transform="translate(0 1)" />
+</svg></button>
+        <button id="forward" aria-label="forward"><svg xmlns="http://www.w3.org/2000/svg"viewBox="0 0 8 8">
+  <path d="M0 0v6l5-3-5-3zm5 3v3h2v-6h-2v3z" transform="translate(0 1)" />
+</svg> </button>
         <!-- <a href="/_/unload">clear</a> -->
       </div>
       <input type="file" id="file" name="file" accept="image/png"></input>
