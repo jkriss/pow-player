@@ -6,9 +6,10 @@
   "scripts": {
     "start": "budo index.js --dir public --serve _/bundle.js --live -- -o public/_/bundle.js",
     "build:index": "browserify -p tinyify -t [ babelify --presets [ \"@babel/preset-env\" ] ] index.js -o dist/_/bundle.js && cp public/index.html dist",
-    "build:public": "cp -r public/_ dist",
+    "build:public": "cp -r public/_ dist && cp public/zipindex.html dist",
     "build:sw": "browserify -p tinyify -t [ babelify --presets [ \"@babel/preset-env\" ] ] -o dist/sw.js sw.js",
-    "build": "npm run build:index && npm run build:sw && npm run build:public",
+    "build:about": "powfile create -i about/pow-splat.png -o public/_/about-pow.png about/index.html about/pow-splat.png",
+    "build": "npm run build:index && npm run build:sw && npm run build:about && npm run build:public",
     "sw:watch": "watchify sw.js -t [ babelify --presets [ \"@babel/preset-env\" ] ] -o public/sw.js -v"
   },
   "author": "Jesse Kriss <jesse@jklabs.net>",
@@ -25,6 +26,7 @@
     "browserify": "^16.5.0",
     "budo": "^11.6.3",
     "core-js": "^3.3.4",
+    "powfile-cli": "0.0.4",
     "regenerator-runtime": "^0.13.3",
     "tinyify": "^2.5.1",
     "watchify": "^3.11.1"

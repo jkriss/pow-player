@@ -69,7 +69,9 @@ const getFromZip = async function(url) {
     .then(res => res.blob().then(blob => loadZip(blob)))
     .catch(err => console.error("error loading zip from cache:", err))
   }
-  if (!zip) return new Response("This file isn't a powfile, no data found.", { status: 404 })
+  //if (!zip) return new Response("This file isn't a powfile, no data found.", { status: 404 })
+  if (!zip) await fetch('/_/about-pow.png').then(res => res.blob()).then(blob => loadZip(blob))
+    .catch(err => console.error("error loading about powfile", err)) 
   const pathname = new URL(url).pathname.slice(1)
   let actualPath = pathname === '' ? '/' : pathname
   //console.log('getting', actualPath, 'from', zip)
