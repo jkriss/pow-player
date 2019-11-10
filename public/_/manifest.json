@@ -2,15 +2,22 @@
   "name": "Pow Player",
   "icons": [
     {
-      "src": "/_/pow-192.png",
+      "src": "/_/pow-splat.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "/_/pow-512.png",
+      "src": "/_/pow-splat.png",
+      "type": "image/png",
+      "sizes": "320x320"
+    },
+    {
+      "src": "/_/pow-splat.png",
       "type": "image/png",
       "sizes": "512x512"
     }
+
+
   ],
   "start_url": "/",
   "display": "standalone",
