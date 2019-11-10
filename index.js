@@ -42,5 +42,8 @@ document.getElementById('forward').addEventListener('click', function() {
   console.log("clicked forward")
   window.history.forward()
 })
+document.getElementById('eject').addEventListener('click', function() {
+  fetch('/_/unload').then(() => window.location.reload())
+})
 
 

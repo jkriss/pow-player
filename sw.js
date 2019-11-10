@@ -122,7 +122,14 @@ self.addEventListener('fetch', function(event) {
   if (parsedUrl.pathname === '/_/unload') {
     console.log("!! unloading !!")
     zip = null
-    event.respondWith(new Response(null, { status: 302, headers: { Location: '/' }}))
+    const req = new Request(self.location.origin + '/_/powfile.png')
+    event.respondWith(
+      caches.open(version)
+        .then(cache => cache.delete(req))
+        // safari doesn't like getting a 302 back for some reason
+        //.then(() => new Response(null, { status: 302, headers: { Location: '/' }}))
+        .then(() => new Response(null, { status: 200 }))
+    )
   } else if (parsedUrl.pathname === '/zipindex.html') {
     // special url for the zip index
     event.respondWith(getFromZip(event.request.url.replace('/zipindex.html', '/index.html')))
