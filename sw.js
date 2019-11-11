@@ -9,7 +9,7 @@ self.addEventListener("install", function(event) {
   console.log("installed, skip waiting");
   // prime cache so it works offline next time
   event.waitUntil(
-    caches.open(version).then(function(cache) {
+    openCache().then(function(cache) {
       console.log("-- initializing cache --")
       return cache.addAll([
         '/',
@@ -21,6 +21,17 @@ self.addEventListener("install", function(event) {
   // install immediately
   self.skipWaiting();
 });
+
+self.addEventListener('activate', function(event) {
+  console.log("-- activating --")
+  return self.clients.claim();
+});
+
+let cachePromise;
+function openCache() {
+  if (!cachePromise) { cachePromise = caches.open(version); }
+  return cachePromise;
+}
 
 let zip
 let zipLoading = false
@@ -42,7 +53,7 @@ const loadZip = function(payload, port) {
       console.error("Couldn't load powfile:", err)
     }
     zipLoading = false
-    caches.open(version).then(cache => {
+    openCache().then(cache => {
       const req = new Request(self.location.origin + '/_/powfile.png')
       console.log("caching powfile as", req)
       cache.put(
@@ -61,10 +72,10 @@ self.addEventListener('message', async function(event){
   loadZip(event.data.payload, event.ports[0])
 })
 
-const getFromZip = async function(url) {
+const loadZipFallback = async () => {
   if (!zip) {
     // try to grab it from the cache first
-    await caches.open(version)
+    await openCache()
     .then(cache => cache.match(new Request(self.location.origin+'/_/powfile.png')))
     .then(res => res.blob().then(blob => loadZip(blob)))
     .catch(err => console.error("error loading zip from cache:", err))
@@ -72,6 +83,10 @@ const getFromZip = async function(url) {
   //if (!zip) return new Response("This file isn't a powfile, no data found.", { status: 404 })
   if (!zip) await fetch('/_/about-pow.png').then(res => res.blob()).then(blob => loadZip(blob))
     .catch(err => console.error("error loading about powfile", err)) 
+}
+
+const getFromZip = async function(url) {
+  await loadZipFallback()
   const pathname = new URL(url).pathname.slice(1)
   let actualPath = pathname === '' ? '/' : pathname
   //console.log('getting', actualPath, 'from', zip)
@@ -80,12 +95,21 @@ const getFromZip = async function(url) {
     actualPath = pathname+'index.html'
     fileEntry = zip.file(actualPath)
   }
-  if (!fileEntry) return new Response('', { status: 404 })
+  if (!fileEntry) {
+    console.log("no file found for", actualPath)
+    return new Response('', { status: 404 })
+  }
   return fileEntry.async("nodebuffer").then(res => {
     try {
       const parsedResponse = parseResponse(res, {decodeContentEncoding:true})
-      return new Response(parsedResponse.bodyData, { headers: parsedResponse.headers })
+      console.log("parsed response:", parsedResponse)
+      //return new Response(parsedResponse.bodyData, { headers: parsedResponse.headers })
+      const newRes = new Response(parsedResponse.bodyData, { headers: parsedResponse.headers })
+      // const newRes = new Response(parsedResponse.bodyData, { headers: { 'Content-Type' : parsedResponse.headers['content-type'] } })
+      console.log("returning response from zip:", newRes)
+      return newRes
     } catch (err) {
+      console.error("error parsing http response:", err)
       // not a valid http response, assume it's just a file
       const type = mime.getType(actualPath.match(/\.([^.]+)$/)[1])
       //console.log("sending file directly, type is", type)
@@ -124,7 +148,7 @@ self.addEventListener('fetch', function(event) {
     zip = null
     const req = new Request(self.location.origin + '/_/powfile.png')
     event.respondWith(
-      caches.open(version)
+      openCache()
         .then(cache => cache.delete(req))
         // safari doesn't like getting a 302 back for some reason
         //.then(() => new Response(null, { status: 302, headers: { Location: '/' }}))
@@ -133,7 +157,7 @@ self.addEventListener('fetch', function(event) {
   } else if (parsedUrl.pathname === '/zipindex.html') {
     // special url for the zip index
     event.respondWith(getFromZip(event.request.url.replace('/zipindex.html', '/index.html')))
-  } else if (overrideUrl(event.request.url) && zip) {
+  } else if (overrideUrl(event.request.url)) {
     event.respondWith(getFromZip(event.request.url))
   } else if (parsedUrl.pathname === '/_/powfile.png') {
     event.respondWith(caches.match(event.request))
@@ -151,7 +175,7 @@ self.addEventListener('fetch', function(event) {
           return fetch(event.request).then(response => {
             // if we're online, try fetching
             // save this to the cache so we're up to date next time we're offline
-            return caches.open(version)
+            return openCache()
             .then(cache => {
                if (response.status === 200) {
                  cache.put(event.request, response.clone())
