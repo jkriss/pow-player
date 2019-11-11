@@ -3,7 +3,6 @@ require('regenerator-runtime/runtime')
 const mime = require('mime/lite')
 const { parse } = require('powfile')
 const { parseResponse } = require('parse-raw-http').parseResponse
-const headerCase = require('header-case')
 const version = 'v1'
 
 self.addEventListener("install", function(event) {
@@ -106,12 +105,9 @@ const getFromZip = async function(url) {
       console.log("parsed response:", parsedResponse)
       //return new Response(parsedResponse.bodyData, { headers: parsedResponse.headers })
       // const newRes = new Response(parsedResponse.bodyData, { headers: parsedResponse.headers })
-      const headers = {}
-      for (const k of Object.keys(parsedResponse.headers)) {
-        headers[headerCase(k)] = parsedResponse.headers[k]
-      }
+      const headers = parsedResponse.headers
       // download image files by default
-      if (headers['Content-Type'].includes('image')) {
+      if (headers['content-type'].includes('image')) {
         headers['Content-Disposition'] = `attachment; filename=${pathname.split('/').pop()}`
       }
       const newRes = new Response(parsedResponse.bodyData, { headers })
