@@ -16,6 +16,7 @@
   "license": "ISC",
   "browserslist": "> 1%, not dead",
   "dependencies": {
+    "header-case": "^1.0.1",
     "powfile": "0.0.3",
     "zip-server": "0.0.1"
   },

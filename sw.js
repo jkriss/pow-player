@@ -3,6 +3,7 @@ require('regenerator-runtime/runtime')
 const mime = require('mime/lite')
 const { parse } = require('powfile')
 const { parseResponse } = require('parse-raw-http').parseResponse
+const headerCase = require('header-case')
 const version = 'v1'
 
 self.addEventListener("install", function(event) {
@@ -58,7 +59,7 @@ const loadZip = function(payload, port) {
       console.log("caching powfile as", req)
       cache.put(
         req,
-        new Response(buf, { headers: { 'Content-Type': 'image/png', 'Content-Length': buf.length } })
+        new Response(buf, { headers: { 'Content-Type': 'image/png', 'Content-Length': buf.length, 'Content-Disposition': 'attachment; filename=powfile.png' } })
       )
     })
     if (port) port.postMessage({ type: 'zipLoaded' })
@@ -104,8 +105,16 @@ const getFromZip = async function(url) {
       const parsedResponse = parseResponse(res, {decodeContentEncoding:true})
       console.log("parsed response:", parsedResponse)
       //return new Response(parsedResponse.bodyData, { headers: parsedResponse.headers })
-      const newRes = new Response(parsedResponse.bodyData, { headers: parsedResponse.headers })
-      // const newRes = new Response(parsedResponse.bodyData, { headers: { 'Content-Type' : parsedResponse.headers['content-type'] } })
+      // const newRes = new Response(parsedResponse.bodyData, { headers: parsedResponse.headers })
+      const headers = {}
+      for (const k of Object.keys(parsedResponse.headers)) {
+        headers[headerCase(k)] = parsedResponse.headers[k]
+      }
+      // download image files by default
+      if (headers['Content-Type'].includes('image')) {
+        headers['Content-Disposition'] = `attachment; filename=${pathname.split('/').pop()}`
+      }
+      const newRes = new Response(parsedResponse.bodyData, { headers })
       console.log("returning response from zip:", newRes)
       return newRes
     } catch (err) {
