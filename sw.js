@@ -13,7 +13,8 @@ self.addEventListener("install", function(event) {
       console.log("-- initializing cache --")
       return cache.addAll([
         '/',
-        '/_/bundle.js'
+        '/_/bundle.js',
+        '/_/about-pow.png'
       ]).catch(console.error)
       .then(() => console.log("-- cache initialized --"))
     })
@@ -52,7 +53,7 @@ const loadZip = function(payload, port) {
     } catch (err) {
       console.error("Couldn't load powfile:", err)
     }
-    zipLoading = false
+    zipLoading = false,
     openCache().then(cache => {
       const req = new Request(self.location.origin + '/_/powfile.png')
       console.log("caching powfile as", req)
@@ -77,11 +78,17 @@ const loadZipFallback = async () => {
     // try to grab it from the cache first
     await openCache()
     .then(cache => cache.match(new Request(self.location.origin+'/_/powfile.png')))
+    .then(res => {
+      if (!res) throw "no response for powfile.png"
+      return res
+    })
     .then(res => res.blob().then(blob => loadZip(blob)))
     .catch(err => console.error("error loading zip from cache:", err))
   }
   //if (!zip) return new Response("This file isn't a powfile, no data found.", { status: 404 })
-  if (!zip) await fetch('/_/about-pow.png').then(res => res.blob()).then(blob => loadZip(blob))
+  if (!zip) await openCache()
+    .then(cache => cache.match(new Request(self.location.origin+'/_/about-pow.png')))
+    .then(res => res.blob()).then(blob => loadZip(blob))
     .catch(err => console.error("error loading about powfile", err)) 
 }
 
