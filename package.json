@@ -16,7 +16,7 @@
   "license": "ISC",
   "browserslist": "> 1%, not dead",
   "dependencies": {
-    "powfile": "0.0.3",
+    "powfile": "0.0.4",
     "zip-server": "0.0.1"
   },
   "devDependencies": {
@@ -26,7 +26,7 @@
     "browserify": "^16.5.0",
     "budo": "^11.6.3",
     "core-js": "^3.3.4",
-    "powfile-cli": "0.0.4",
+    "powfile-cli": "0.0.5",
     "regenerator-runtime": "^0.13.3",
     "tinyify": "^2.5.1",
     "watchify": "^3.11.1"
